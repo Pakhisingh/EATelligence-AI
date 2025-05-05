@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-def load_nutrition_data(file_path: str = '../data/Indian_Food_Nutrition_Processed.csv') -> pd.DataFrame:
+def load_nutrition_data(file_path: str = '../app/Indian_Food_Nutrition_Processed.csv') -> pd.DataFrame:
     """
     Load and clean Indian food nutrition data from a CSV file.
     
