@@ -13,7 +13,21 @@ except Exception as e:
 
 class RecipeGenerator:
     def __init__(self):
-        self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        """Initialize the recipe generator with OpenAI client"""
+        load_dotenv()
+        try:
+            api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+            if api_key:
+                self.client = openai.OpenAI(api_key=api_key)
+                self.is_api_available = True
+            else:
+                st.warning("OpenAI API key not found. Using fallback recipe generation.")
+                self.is_api_available = False
+                self.client = None
+        except Exception as e:
+            st.warning("Could not initialize OpenAI client. Using fallback recipe generation.")
+            self.is_api_available = False
+            self.client = None
         
         # Define common Indian ingredients
         self.ingredients = {
@@ -39,65 +53,94 @@ class RecipeGenerator:
             ]
         }
     
-    def generate_recipe(self, selected_ingredients: List[str]) -> Dict:
+    def generate_recipe(self, ingredients: list, cuisine: str = "Indian") -> dict:
         """
-        Generate a unique recipe using selected ingredients
+        Generate a recipe based on available ingredients and cuisine type
         
         Args:
-            selected_ingredients (List[str]): List of ingredients to use in the recipe
+            ingredients (list): List of available ingredients
+            cuisine (str): Type of cuisine (default: Indian)
             
         Returns:
-            Dict containing:
-            - recipe_name: Name of the recipe
-            - ingredients: List of ingredients with quantities
-            - instructions: Step-by-step cooking instructions
-            - nutritional_benefits: List of nutritional benefits
+            dict: Generated recipe with name, ingredients, instructions, and nutrition info
         """
-        # Prepare the prompt for GPT
-        prompt = f"""
-        Create a unique, healthy Indian recipe using these ingredients: {', '.join(selected_ingredients)}.
-        The recipe should be:
-        1. Nutritious and balanced
-        2. Easy to prepare
-        3. Use traditional Indian cooking methods
-        4. Include specific quantities for ingredients
-        5. Have clear step-by-step instructions
-        6. Include nutritional benefits
-        
-        Format the response as a JSON with these keys:
-        - recipe_name: Creative name for the recipe
-        - ingredients: List of ingredients with quantities
-        - instructions: Step-by-step cooking instructions
-        - nutritional_benefits: List of nutritional benefits
-        
-        Make the recipe innovative while keeping it authentic to Indian cuisine.
-        """
-        
+        if not self.is_api_available:
+            return self._get_fallback_recipe(ingredients, cuisine)
+            
         try:
-            # Call OpenAI API
+            prompt = f"""Generate a healthy {cuisine} recipe using these ingredients: {', '.join(ingredients)}.
+            Include:
+            1. Recipe name
+            2. List of ingredients with quantities
+            3. Step-by-step cooking instructions
+            4. Nutritional information (calories, protein, carbs, fat)
+            5. Health benefits
+            Format the response as a JSON object with these keys: name, ingredients, instructions, nutrition, health_benefits"""
+            
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a professional Indian chef and nutritionist."},
+                    {"role": "system", "content": "You are a professional chef specializing in healthy cooking."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7
+                temperature=0.7,
+                max_tokens=500
             )
             
-            # Parse the response
-            recipe_text = response.choices[0].message.content
-            recipe = json.loads(recipe_text)
-            return recipe
+            try:
+                recipe_text = response.choices[0].message.content
+                recipe = json.loads(recipe_text)
+                return recipe
+            except (json.JSONDecodeError, AttributeError) as e:
+                st.error("Error parsing recipe response. Using fallback recipe.")
+                return self._get_fallback_recipe(ingredients, cuisine)
             
         except Exception as e:
-            print(f"Error generating recipe: {str(e)}")
-            return {
-                "error": str(e),
-                "recipe_name": "Error in recipe generation",
-                "ingredients": [],
-                "instructions": [],
-                "nutritional_benefits": []
+            st.error(f"Error generating recipe. Using fallback recipe.")
+            return self._get_fallback_recipe(ingredients, cuisine)
+    
+    def _get_fallback_recipe(self, ingredients: list, cuisine: str) -> dict:
+        """Provide a fallback recipe when API is not available"""
+        main_ingredient = ingredients[0] if ingredients else "mixed vegetables"
+        
+        fallback_recipes = {
+            "Indian": {
+                "name": f"{main_ingredient.title()} Curry",
+                "ingredients": [
+                    f"2 cups {main_ingredient}",
+                    "1 onion, finely chopped",
+                    "2 tomatoes, chopped",
+                    "2 tbsp oil",
+                    "1 tsp cumin seeds",
+                    "1 tsp turmeric powder",
+                    "1 tsp red chili powder",
+                    "Salt to taste",
+                    "Coriander leaves for garnish"
+                ],
+                "instructions": [
+                    "1. Heat oil in a pan and add cumin seeds",
+                    "2. Add chopped onions and sauté until golden brown",
+                    "3. Add tomatoes and cook until soft",
+                    "4. Add all spices and salt",
+                    f"5. Add {main_ingredient} and cook until tender",
+                    "6. Garnish with coriander leaves and serve hot"
+                ],
+                "nutrition": {
+                    "calories": 150,
+                    "protein": 4,
+                    "carbs": 20,
+                    "fat": 6
+                },
+                "health_benefits": [
+                    "Rich in fiber",
+                    "Low in calories",
+                    "Good source of vitamins and minerals",
+                    "Helps in weight management"
+                ]
             }
+        }
+        
+        return fallback_recipes.get(cuisine, fallback_recipes["Indian"])
     
     def get_ingredient_categories(self) -> Dict[str, List[str]]:
         """
