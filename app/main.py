@@ -7,13 +7,60 @@ from food_recognition import FoodRecognizer
 from recipe_generator import RecipeGenerator
 from disease_recommender import DiseaseRecommender
 from healthy_alternatives import HealthyAlternatives
+import json
 
 # Set page config - MUST be the first Streamlit command
 st.set_page_config(
-    page_title="EATelligence AI",
+    page_title="Welcome to EATelligence AI 
+Your smart AI-powered food companion!
+This app helps analyze food nutrition, suggest healthier alternatives, create innovative Indian food combos, and give disease-specific diet advice.",
     page_icon="🍛",
     layout="wide"
 )
+
+# Add Google Fonts and blur background
+st.markdown('''
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+    .stApp {
+        background-image: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1500&q=80");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+    .main-header {
+        width: 100%;
+        text-align: center;
+        font-family: 'Pacifico', cursive;
+        font-size: 2.7em;
+        color: #3CB371;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+        background: rgba(255,255,255,0.7);
+        border-radius: 20px;
+        padding: 1em;
+        box-shadow: 0 4px 24px 0 rgba(44,62,80,0.07);
+    }
+    .health-badge {
+        display: inline-block;
+        padding: 0.4em 1em;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1em;
+        margin: 0.2em 0.4em 0.2em 0;
+    }
+    .badge-green { background: #B8E0D2; color: #2C3E50; }
+    .badge-yellow { background: #FFF3CD; color: #856404; }
+    .badge-red { background: #F8D7DA; color: #721C24; }
+    </style>
+''', unsafe_allow_html=True)
+
+# Replace header card with playful headline
+st.markdown('''
+    <div class="main-header">
+        "The Greatest Wealth Is <span style='color:#6FCF97;'>Health</span>"
+    </div>
+''', unsafe_allow_html=True)
 
 # Enhanced professional CSS
 st.markdown("""
@@ -272,26 +319,16 @@ pastel_divider = "<div class='pastel-divider'></div>"
 with food_tab:
     st.subheader("🍽️ Food Analyzer")
     st.markdown(pastel_divider, unsafe_allow_html=True)
-    # Food search
     food_name = st.text_input("Enter food name")
-    
-    # Image upload
     uploaded_file = st.file_uploader("Or upload a food image", type=["jpg", "jpeg", "png"])
-    
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         result = components['food_recognizer'].process_image(image)
-        
         if result:
-            # Create two columns for image and nutrition info
             col1, col2 = st.columns([1, 2])
-            
             with col1:
-                # Display the food image
                 st.image(result['display_image'], caption="Uploaded Food Image", use_column_width=True)
-            
             with col2:
-                # Display nutrition information if available
                 if 'name' in result:
                     st.markdown(f"**Recognized Food:** {result['name']}")
                     st.markdown("**Nutrition Information:**")
@@ -299,17 +336,10 @@ with food_tab:
                     st.markdown(f"- Protein: {result['protein']}g")
                     st.markdown(f"- Fat: {result['fat']}g")
                     st.markdown(f"- Carbohydrates: {result['carbs']}g")
-                    
-                    # Create pie chart for macronutrients
                     macronutrients = pd.DataFrame({
                         'Nutrient': ['Protein', 'Fat', 'Carbs'],
-                        'Amount': [
-                            result['protein'],
-                            result['fat'],
-                            result['carbs']
-                        ]
+                        'Amount': [result['protein'], result['fat'], result['carbs']]
                     })
-                    
                     fig = px.pie(
                         macronutrients,
                         values='Amount',
@@ -318,6 +348,11 @@ with food_tab:
                         color_discrete_sequence=['#FF6B6B', '#B8E0D2', '#95C9B9']
                     )
                     st.plotly_chart(fig, use_container_width=True)
+                    # --- Health Impact Assessment ---
+                    st.markdown("<h4>Health Impact Assessment</h4>", unsafe_allow_html=True)
+                    assessment, badges = get_health_impact_assessment(result)
+                    st.markdown(f"<div style='margin-bottom:0.5em;'>{assessment}</div>", unsafe_allow_html=True)
+                    st.markdown(' '.join(badges), unsafe_allow_html=True)
                 else:
                     st.warning("Could not recognize the food in the image. Please try another image or use the text input.")
 
@@ -814,3 +849,96 @@ with alt_tab:
                     st.error("Could not find healthier alternatives for this food.")
         else:
             st.error("Could not find healthier alternatives for this food.")
+
+def show_recipe_generator():
+    st.subheader("AI Recipe Generator")
+    st.write("Get personalized recipe suggestions based on your available ingredients!")
+    
+    # Get user input
+    ingredients = st.text_input("Enter ingredients (comma-separated):")
+    cuisine = st.selectbox("Select cuisine type:", ["Indian", "Italian", "Chinese", "Mexican", "Mediterranean"])
+    
+    if st.button("Generate Recipe"):
+        if ingredients:
+            with st.spinner("Generating your recipe..."):
+                try:
+                    recipe = components['recipe_generator'].generate_recipe(
+                        ingredients=[i.strip() for i in ingredients.split(',')],
+                        cuisine=cuisine
+                    )
+                    
+                    if isinstance(recipe, str):
+                        try:
+                            recipe = json.loads(recipe)
+                        except json.JSONDecodeError:
+                            st.error("Error parsing recipe data. Please try again.")
+                            return
+                    
+                    # Display recipe
+                    st.success("Here's your personalized recipe!")
+                    
+                    # Recipe name
+                    st.markdown(f"### {recipe['name']}")
+                    
+                    # Ingredients
+                    st.markdown("#### Ingredients:")
+                    for ingredient in recipe['ingredients']:
+                        st.write(f"- {ingredient}")
+                    
+                    # Instructions
+                    st.markdown("#### Instructions:")
+                    for i, step in enumerate(recipe['instructions'], 1):
+                        st.write(f"{i}. {step}")
+                    
+                    # Nutrition info
+                    st.markdown("#### Nutritional Information:")
+                    nutrition = recipe.get('nutrition', {})
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Calories", f"{nutrition.get('calories', 'N/A')} kcal")
+                    with col2:
+                        st.metric("Protein", f"{nutrition.get('protein', 'N/A')}g")
+                    with col3:
+                        st.metric("Carbs", f"{nutrition.get('carbs', 'N/A')}g")
+                    with col4:
+                        st.metric("Fat", f"{nutrition.get('fat', 'N/A')}g")
+                    
+                    # Health benefits
+                    st.markdown("#### Health Benefits:")
+                    for benefit in recipe.get('health_benefits', []):
+                        st.write(f"- {benefit}")
+                        
+                except Exception as e:
+                    st.error(f"Error generating recipe: {str(e)}")
+        else:
+            st.warning("Please enter at least one ingredient.")
+
+# Add the health impact assessment function
+
+def get_health_impact_assessment(nutrition):
+    # Simple rules for demonstration
+    calories = nutrition.get('calories', 0)
+    protein = nutrition.get('protein', 0)
+    fat = nutrition.get('fat', 0)
+    carbs = nutrition.get('carbs', 0)
+    assessment = []
+    badges = []
+    if calories < 120:
+        assessment.append("Low in calories. Good for weight management.")
+        badges.append("<span class='health-badge badge-green'>Low Calorie</span>")
+    elif calories < 250:
+        assessment.append("Moderate calories. Suitable for most diets.")
+        badges.append("<span class='health-badge badge-yellow'>Moderate Calorie</span>")
+    else:
+        assessment.append("High in calories. Consume in moderation.")
+        badges.append("<span class='health-badge badge-red'>High Calorie</span>")
+    if protein > 5:
+        assessment.append("Good source of protein.")
+        badges.append("<span class='health-badge badge-green'>High Protein</span>")
+    if fat > 10:
+        assessment.append("High in fat. Limit intake if on a low-fat diet.")
+        badges.append("<span class='health-badge badge-red'>High Fat</span>")
+    if carbs > 30:
+        assessment.append("High in carbohydrates. Suitable for energy needs.")
+        badges.append("<span class='health-badge badge-yellow'>High Carbs</span>")
+    return ' '.join(assessment), badges
