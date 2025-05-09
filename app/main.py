@@ -11,7 +11,7 @@ import json
 
 # Set page config - MUST be the first Streamlit command
 st.set_page_config(
-    page_title="EATelligence AI",
+    page_title="Welcome to EATelligence AI Your AI Powered Food Analyzer & Recommender Friend!",
     page_icon="🍛",
     layout="wide"
 )
