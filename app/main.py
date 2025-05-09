@@ -11,12 +11,12 @@ import json
 
 # Set page config - MUST be the first Streamlit command
 st.set_page_config(
-    page_title="Welcome to EATelligence AI Your smart AI-powered food companion! This app helps analyze food nutrition, suggest healthier alternatives, create innovative Indian food combos, and give disease-specific diet advice.",
+    page_title="EATelligence AI",
     page_icon="🍛",
     layout="wide"
 )
 
-# Add Google Fonts and blur background
+# Add Google Fonts, blur background, and overlay for readability
 st.markdown('''
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
@@ -25,16 +25,24 @@ st.markdown('''
         background-size: cover;
         background-repeat: no-repeat;
         background-attachment: fixed;
+        position: relative;
+    }
+    /* Overlay for main content to improve readability */
+    .block-container {
+        background: rgba(255,255,255,0.85) !important;
+        border-radius: 18px;
+        padding: 2.5rem 2.5rem 2.5rem 2.5rem;
+        box-shadow: 0 4px 24px 0 rgba(44,62,80,0.10);
     }
     .main-header {
         width: 100%;
         text-align: center;
         font-family: 'Pacifico', cursive;
         font-size: 2.7em;
-        color: #3CB371;
+        color: #2C3E50;
         margin-top: 0.5em;
         margin-bottom: 0.5em;
-        background: rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.85);
         border-radius: 20px;
         padding: 1em;
         box-shadow: 0 4px 24px 0 rgba(44,62,80,0.07);
@@ -50,6 +58,28 @@ st.markdown('''
     .badge-green { background: #B8E0D2; color: #2C3E50; }
     .badge-yellow { background: #FFF3CD; color: #856404; }
     .badge-red { background: #F8D7DA; color: #721C24; }
+    /* General text color for all modules */
+    .block-container, .stMarkdown, .stDataFrame, .stTable, .stExpander, .stTextInput, .stSelectbox, .stButton, .stMetric, .stSubheader, .stHeader, .stTabs, .stPlotlyChart, .stWarning, .stInfo, .stSuccess, .stError {
+        color: #2C3E50 !important;
+    }
+    /* Input fields and cards */
+    .stTextInput > div > div > input, .stSelectbox > div > div > div {
+        background-color: #FFFFFF !important;
+        color: #2C3E50 !important;
+        border: 2px solid #B8E0D2;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    /* Subheaders and section titles */
+    h3, .stSubheader, .stHeader {
+        color: #1A3C40 !important;
+        font-weight: 700;
+    }
+    /* Sidebar overlay for readability */
+    section[data-testid="stSidebar"] {
+        background: rgba(255,255,255,0.92) !important;
+        border-radius: 0 20px 20px 0;
+    }
     </style>
 ''', unsafe_allow_html=True)
 
@@ -59,223 +89,6 @@ st.markdown('''
         "The Greatest Wealth Is <span style='color:#6FCF97;'>Health</span>"
     </div>
 ''', unsafe_allow_html=True)
-
-# Enhanced professional CSS
-st.markdown("""
-    <style>
-        /* Main app background */
-        .stApp {
-            background-color: #E8F5E9 !important;  /* Pastel light green */
-        }
-        section[data-testid="stSidebar"] {
-            background-color: #E8F5E9 !important;  /* Match main background */
-            border-radius: 0 20px 20px 0;
-        }
-        .sidebar-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: #2C3E50;
-            margin-bottom: 0.5em;
-        }
-        .sidebar-section {
-            margin-bottom: 1.5em;
-        }
-        .sidebar-link {
-            font-size: 1.1em;
-            color: #2C3E50;
-            margin-left: 0.5em;
-            font-weight: 500;
-        }
-        .sidebar-divider {
-            height: 2px;
-            background: linear-gradient(90deg, #B8E0D2 0%, #95C9B9 100%);
-            border-radius: 2px;
-            margin: 1em 0;
-        }
-        .sidebar-footer {
-            font-size: 0.95em;
-            color: #2C3E50;
-            margin-top: 2em;
-            border-top: 1px solid #B8E0D2;
-            padding-top: 1em;
-        }
-        /* Professional header card */
-        .header-card {
-            background: linear-gradient(90deg, #E8F5E9 60%, #B8E0D2 100%);
-            box-shadow: 0 4px 24px 0 rgba(44,62,80,0.07);
-            border-radius: 18px;
-            padding: 32px 24px 24px 24px;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-        .header-title {
-            color: #2C3E50;
-            font-size: 2.7em;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-        }
-        .header-subtitle {
-            color: #2C3E50;
-            font-size: 1.3em;
-            font-weight: 500;
-            margin-top: 0;
-            margin-bottom: 8px;
-        }
-        .header-desc {
-            color: #2C3E50;
-            font-size: 1.08em;
-            margin-bottom: 0;
-        }
-        /* Tabs styling */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 2rem;
-        }
-        .stTabs [data-baseweb="tab"] {
-            background-color: #B8E0D2;
-            color: #2C3E50;
-            border-radius: 8px 8px 0 0;
-            padding: 0.7rem 1.3rem;
-            font-size: 1.1em;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px 0 rgba(44,62,80,0.04);
-        }
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #95C9B9;
-            color: #2C3E50;
-        }
-        .stTabs [aria-selected="true"] {
-            background-color: #E8F5E9;
-            color: #2C3E50;
-            border-bottom: 3px solid #2C3E50;
-        }
-        /* Input field styling */
-        .stTextInput > div > div > input {
-            background-color: #FFFFFF;
-            border: 2px solid #B8E0D2;
-            border-radius: 8px;
-            padding: 0.5rem;
-            font-weight: 500;
-        }
-        .stSelectbox > div > div > div {
-            background-color: #FFFFFF;
-            border: 2px solid #B8E0D2;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-        /* Pastel divider for sections */
-        .pastel-divider {
-            height: 3px;
-            background: linear-gradient(90deg, #B8E0D2 0%, #95C9B9 100%);
-            border-radius: 2px;
-            margin-bottom: 1.5em;
-            margin-top: 0.5em;
-        }
-        /* Section header spacing */
-        .block-container {
-            padding-top: 0.5rem;
-        }
-        /* Make subheaders more visible */
-        h3 {
-            color: #2C3E50;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-        /* Make input labels more visible */
-        .stTextInput > label, .stSelectbox > label {
-            font-weight: 600;
-            color: #2C3E50;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Sidebar content
-st.sidebar.markdown("""
-    <style>
-        /* Remove sidebar scrollbar */
-        section[data-testid="stSidebar"] > div {
-            overflow: hidden !important;
-        }
-        .sidebar-section {
-            background-color: #FFFFFF;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .sidebar-title {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #2C3E50;
-            margin-bottom: 0.6rem;
-            display: block;
-        }
-        .sidebar-content {
-            font-size: 0.95em;
-            line-height: 1.5;
-            color: #4A4A4A;
-        }
-        .feature-item {
-            background-color: #F5F9F5;
-            padding: 0.7rem;
-            margin-bottom: 0.6rem;
-            border-radius: 8px;
-            font-weight: 500;
-            color: #2C3E50;
-        }
-        .sidebar-divider {
-            height: 1px;
-            background: linear-gradient(90deg, #B8E0D2 0%, #95C9B9 100%);
-            margin: 1.2rem 0;
-        }
-        .sidebar-footer {
-            font-size: 0.9em;
-            color: #4A4A4A;
-            margin-top: 1.5rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #B8E0D2;
-        }
-        .project-note {
-            font-size: 0.95em;
-            color: #2C8A7D;
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #B8E0D2;
-            font-style: italic;
-            font-weight: 500;
-            line-height: 1.4;
-        }
-    </style>
-    
-    <div class="sidebar-section">
-        <span class="sidebar-title">About</span>
-        <div class="sidebar-content">
-            EATelligence AI is an AI-powered food analyzer and recommendation system designed to promote healthy eating habits. The app enables users to analyze nutritional content in real-time, receive healthier food alternatives, and explore AI-driven innovative food blends using traditional Indian ingredients. It also offers personalized meal suggestions tailored to common lifestyle diseases, helping users make informed and balanced dietary choices.
-        </div>
-    </div>
-    
-    <div class="sidebar-divider"></div>
-    
-    <div class="sidebar-section">
-        <span class="sidebar-title">Key Features</span>
-        <div class="feature-item">Food Analyzer</div>
-        <div class="feature-item">AI-Based Food Innovation</div>
-        <div class="feature-item">Disease-Specific Diets</div>
-        <div class="feature-item">Healthier Alternatives</div>
-    </div>
-    
-    <div class="sidebar-footer">
-        <b>Developed by:</b><br>
-        Pakhi Singh Tak<br>
-        Ilansha Singh Sisodia
-    </div>
-    
-    <div class="project-note">
-        This project has been developed as part of a B.Tech Final Year Project
-    </div>
-""", unsafe_allow_html=True)
 
 # Professional header card
 st.markdown("""
