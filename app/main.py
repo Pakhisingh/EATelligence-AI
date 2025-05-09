@@ -11,9 +11,7 @@ import json
 
 # Set page config - MUST be the first Streamlit command
 st.set_page_config(
-    page_title="Welcome to EATelligence AI 
-Your smart AI-powered food companion!
-This app helps analyze food nutrition, suggest healthier alternatives, create innovative Indian food combos, and give disease-specific diet advice.",
+    page_title="Welcome to EATelligence AI Your smart AI-powered food companion! This app helps analyze food nutrition, suggest healthier alternatives, create innovative Indian food combos, and give disease-specific diet advice.",
     page_icon="🍛",
     layout="wide"
 )
