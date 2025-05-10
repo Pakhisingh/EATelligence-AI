@@ -132,8 +132,12 @@ class DiseaseRecommender:
             for meal_type, proportion in self.meal_types.items():
                 meal_calories = daily_calories * proportion
                 
-                # Select foods for the meal
-                meal_foods = suitable_foods.sample(min(3, len(suitable_foods)))
+                # If suitable_foods is still empty, fallback to full dataset
+                if suitable_foods.empty:
+                    st.warning(f"No foods available for {condition}. Showing random foods.")
+                    meal_foods = self.df.sample(3)
+                else:
+                    meal_foods = suitable_foods.sample(min(3, len(suitable_foods)))
                 
                 # Calculate nutritional values
                 meal_nutrition = {
@@ -192,7 +196,11 @@ class DiseaseRecommender:
             for nutrient, filter_func in criteria['filters'].items():
                 filtered_df = filtered_df[filtered_df[nutrient].apply(filter_func)]
             
+            # Fallback: If no foods match, use the full dataset and show a warning
+            if filtered_df.empty:
+                st.warning(f"No foods matched the strict criteria for {condition}. Showing a general selection.")
+                return self.df.copy()
             return filtered_df
         except Exception as e:
             st.error(f"Error getting suitable foods: {str(e)}")
-            return pd.DataFrame() 
+            return self.df.copy()  # Fallback to full dataset 
