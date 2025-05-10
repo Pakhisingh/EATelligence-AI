@@ -37,12 +37,14 @@ st.markdown("""
     }
     
     .header-title {
-        font-family: 'Comic Sans MS', cursive;
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
         color: #2E7D32;
-        font-size: 2.5em;
+        font-size: 2.8em;
         text-align: center;
         margin-bottom: 10px;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+        letter-spacing: 1px;
     }
     
     .header-subtitle {
@@ -220,6 +222,48 @@ with food_tab:
                     st.dataframe(nutrition_df, use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
+                    # Create pie chart for macronutrients
+                    macronutrients = pd.DataFrame({
+                        'Nutrient': ['Protein', 'Fat', 'Carbohydrates'],
+                        'Amount': [
+                            nutrition_info['protein'],
+                            nutrition_info['fat'],
+                            nutrition_info['carbs']
+                        ]
+                    })
+                    
+                    fig = px.pie(
+                        macronutrients,
+                        values='Amount',
+                        names='Nutrient',
+                        title="Macronutrient Distribution",
+                        color_discrete_sequence=['#2E7D32', '#81C784', '#A5D6A7'],
+                        hole=0.4  # Creates a donut chart
+                    )
+                    
+                    # Update layout for better appearance
+                    fig.update_traces(
+                        textposition='inside',
+                        textinfo='percent+label',
+                        insidetextfont=dict(size=14, color='white'),
+                        marker=dict(line=dict(color='white', width=2))
+                    )
+                    
+                    fig.update_layout(
+                        title_x=0.5,
+                        title_font_size=20,
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="center",
+                            x=0.5
+                        )
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    
                     # Health Impact Assessment
                     st.markdown("### 🏥 Health Impact Assessment")
                     health_impact = assess_health_impact(nutrition_info)
@@ -261,6 +305,48 @@ with food_tab:
                 st.markdown('<div class="nutrition-table">', unsafe_allow_html=True)
                 st.dataframe(nutrition_df, use_container_width=True)
                 st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Create pie chart for macronutrients
+                macronutrients = pd.DataFrame({
+                    'Nutrient': ['Protein', 'Fat', 'Carbohydrates'],
+                    'Amount': [
+                        nutrition_info['protein'],
+                        nutrition_info['fat'],
+                        nutrition_info['carbs']
+                    ]
+                })
+                
+                fig = px.pie(
+                    macronutrients,
+                    values='Amount',
+                    names='Nutrient',
+                    title="Macronutrient Distribution",
+                    color_discrete_sequence=['#2E7D32', '#81C784', '#A5D6A7'],
+                    hole=0.4  # Creates a donut chart
+                )
+                
+                # Update layout for better appearance
+                fig.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    insidetextfont=dict(size=14, color='white'),
+                    marker=dict(line=dict(color='white', width=2))
+                )
+                
+                fig.update_layout(
+                    title_x=0.5,
+                    title_font_size=20,
+                    showlegend=True,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
                 
                 # Health Impact Assessment
                 st.markdown("### 🏥 Health Impact Assessment")
