@@ -85,3 +85,56 @@ def get_nutrition_info(food_name: str) -> dict:
     except Exception as e:
         st.error(f"Error getting nutrition info: {str(e)}")
         return None
+
+def assess_health_impact(nutrition_info):
+    """
+    Assess the health impact of a food item based on its nutritional values.
+    Returns a dictionary of health impacts and their descriptions.
+    """
+    impacts = {}
+    
+    # Calorie assessment
+    calories = nutrition_info.get('calories', 0)
+    if calories < 200:
+        impacts['Calorie Content'] = "Low calorie content, good for weight management"
+    elif calories < 400:
+        impacts['Calorie Content'] = "Moderate calorie content, suitable for regular consumption"
+    else:
+        impacts['Calorie Content'] = "High calorie content, consume in moderation"
+    
+    # Protein assessment
+    protein = nutrition_info.get('protein', 0)
+    if protein > 15:
+        impacts['Protein Content'] = "High protein content, good for muscle building and satiety"
+    elif protein > 8:
+        impacts['Protein Content'] = "Moderate protein content, contributes to daily protein needs"
+    else:
+        impacts['Protein Content'] = "Low protein content, consider pairing with protein-rich foods"
+    
+    # Fat assessment
+    fat = nutrition_info.get('fat', 0)
+    if fat < 5:
+        impacts['Fat Content'] = "Low fat content, good for heart health"
+    elif fat < 15:
+        impacts['Fat Content'] = "Moderate fat content, provides essential fatty acids"
+    else:
+        impacts['Fat Content'] = "High fat content, consume in moderation"
+    
+    # Carbohydrate assessment
+    carbs = nutrition_info.get('carbs', 0)
+    if carbs < 20:
+        impacts['Carbohydrate Content'] = "Low carbohydrate content, suitable for low-carb diets"
+    elif carbs < 40:
+        impacts['Carbohydrate Content'] = "Moderate carbohydrate content, provides energy"
+    else:
+        impacts['Carbohydrate Content'] = "High carbohydrate content, good for energy but monitor intake"
+    
+    # Overall health impact
+    if calories < 300 and protein > 10 and fat < 10:
+        impacts['Overall Health Impact'] = "Positive: This food is generally healthy and nutritious"
+    elif calories < 500 and protein > 8 and fat < 15:
+        impacts['Overall Health Impact'] = "Moderate: This food can be part of a balanced diet"
+    else:
+        impacts['Overall Health Impact'] = "Caution: Consume in moderation and balance with other foods"
+    
+    return impacts
