@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from PIL import Image
-from nutrition_utils import load_nutrition_data
+from nutrition_utils import load_nutrition_data, get_nutrition_info, assess_health_impact
 from food_recognition import FoodRecognizer
 from recipe_generator import RecipeGenerator
 from disease_recommender import DiseaseRecommender
@@ -16,234 +16,138 @@ st.set_page_config(
     layout="wide"
 )
 
-# Enhanced professional CSS
+# Custom CSS for the entire app
 st.markdown("""
-    <style>
-        /* Main app background */
-        .stApp {
-            background-color: #E8F5E9 !important;  /* Pastel light green */
-        }
-        section[data-testid="stSidebar"] {
-            background-color: #E8F5E9 !important;  /* Match main background */
-            border-radius: 0 20px 20px 0;
-        }
-        .sidebar-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: #2C3E50;
-            margin-bottom: 0.5em;
-        }
-        .sidebar-section {
-            margin-bottom: 1.5em;
-        }
-        .sidebar-link {
-            font-size: 1.1em;
-            color: #2C3E50;
-            margin-left: 0.5em;
-            font-weight: 500;
-        }
-        .sidebar-divider {
-            height: 2px;
-            background: linear-gradient(90deg, #B8E0D2 0%, #95C9B9 100%);
-            border-radius: 2px;
-            margin: 1em 0;
-        }
-        .sidebar-footer {
-            font-size: 0.95em;
-            color: #2C3E50;
-            margin-top: 2em;
-            border-top: 1px solid #B8E0D2;
-            padding-top: 1em;
-        }
-        /* Professional header card */
-        .header-card {
-            background: linear-gradient(90deg, #E8F5E9 60%, #B8E0D2 100%);
-            box-shadow: 0 4px 24px 0 rgba(44,62,80,0.07);
-            border-radius: 18px;
-            padding: 32px 24px 24px 24px;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-        .header-title {
-            color: #2C3E50;
-            font-size: 2.7em;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-        }
-        .header-subtitle {
-            color: #2C3E50;
-            font-size: 1.3em;
-            font-weight: 500;
-            margin-top: 0;
-            margin-bottom: 8px;
-        }
-        .header-desc {
-            color: #2C3E50;
-            font-size: 1.08em;
-            margin-bottom: 0;
-        }
-        /* Tabs styling */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 2rem;
-        }
-        .stTabs [data-baseweb="tab"] {
-            background-color: #B8E0D2;
-            color: #2C3E50;
-            border-radius: 8px 8px 0 0;
-            padding: 0.7rem 1.3rem;
-            font-size: 1.1em;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px 0 rgba(44,62,80,0.04);
-        }
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #95C9B9;
-            color: #2C3E50;
-        }
-        .stTabs [aria-selected="true"] {
-            background-color: #E8F5E9;
-            color: #2C3E50;
-            border-bottom: 3px solid #2C3E50;
-        }
-        /* Input field styling */
-        .stTextInput > div > div > input {
-            background-color: #FFFFFF;
-            border: 2px solid #B8E0D2;
-            border-radius: 8px;
-            padding: 0.5rem;
-            font-weight: 500;
-        }
-        .stSelectbox > div > div > div {
-            background-color: #FFFFFF;
-            border: 2px solid #B8E0D2;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-        /* Pastel divider for sections */
-        .pastel-divider {
-            height: 3px;
-            background: linear-gradient(90deg, #B8E0D2 0%, #95C9B9 100%);
-            border-radius: 2px;
-            margin-bottom: 1.5em;
-            margin-top: 0.5em;
-        }
-        /* Section header spacing */
-        .block-container {
-            padding-top: 0.5rem;
-        }
-        /* Make subheaders more visible */
-        h3 {
-            color: #2C3E50;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-        /* Make input labels more visible */
-        .stTextInput > label, .stSelectbox > label {
-            font-weight: 600;
-            color: #2C3E50;
-        }
-    </style>
+<style>
+    /* Main background */
+    .stApp {
+        background: #F0F7F0 !important;  /* Very light pastel green */
+    }
+    
+    /* Header styling */
+    .header-container {
+        background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+                    url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        padding: 40px 20px;
+        margin: -20px -20px 20px -20px;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-title {
+        font-family: 'Comic Sans MS', cursive;
+        color: #2E7D32;
+        font-size: 2.5em;
+        text-align: center;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-subtitle {
+        color: #666;
+        text-align: center;
+        font-size: 1.2em;
+        margin-bottom: 20px;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .sidebar-content {
+        background-color: rgba(46, 125, 50, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    
+    .sidebar-title {
+        color: #2E7D32;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+    
+    /* Hide Streamlit warnings */
+    .stDeployButton {
+        display: none;
+    }
+    
+    /* Hide secrets warning */
+    .stAlert {
+        display: none;
+    }
+    
+    /* Content area styling */
+    .main-content {
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Remove white box from health impact */
+    .health-impact {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
 """, unsafe_allow_html=True)
 
-# Sidebar content
-st.sidebar.markdown("""
-    <style>
-        /* Remove sidebar scrollbar */
-        section[data-testid="stSidebar"] > div {
-            overflow: hidden !important;
-        }
-        .sidebar-section {
-            background-color: #FFFFFF;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .sidebar-title {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #2C3E50;
-            margin-bottom: 0.6rem;
-            display: block;
-        }
-        .sidebar-content {
-            font-size: 0.95em;
-            line-height: 1.5;
-            color: #4A4A4A;
-        }
-        .feature-item {
-            background-color: #F5F9F5;
-            padding: 0.7rem;
-            margin-bottom: 0.6rem;
-            border-radius: 8px;
-            font-weight: 500;
-            color: #2C3E50;
-        }
-        .sidebar-divider {
-            height: 1px;
-            background: linear-gradient(90deg, #B8E0D2 0%, #95C9B9 100%);
-            margin: 1.2rem 0;
-        }
-        .sidebar-footer {
-            font-size: 0.9em;
-            color: #4A4A4A;
-            margin-top: 1.5rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #B8E0D2;
-        }
-        .project-note {
-            font-size: 0.95em;
-            color: #2C8A7D;
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #B8E0D2;
-            font-style: italic;
-            font-weight: 500;
-            line-height: 1.4;
-        }
-    </style>
-    
-    <div class="sidebar-section">
-        <span class="sidebar-title">About</span>
-        <div class="sidebar-content">
+# Header
+st.markdown("""
+<div class="header-container">
+    <h1 class="header-title">Welcome to EATelligence AI</h1>
+    <p class="header-subtitle">Your AI-powered nutrition and diet planning assistant</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Sidebar
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-content" style='margin-bottom: 30px;'>
+        <h3 class="sidebar-title">About</h3>
+        <p style='color: #666; font-size: 0.95em; line-height: 1.5;'>
             EATelligence AI is an AI-powered food analyzer and recommendation system designed to promote healthy eating habits. The app enables users to analyze nutritional content in real-time, receive healthier food alternatives, and explore AI-driven innovative food blends using traditional Indian ingredients. It also offers personalized meal suggestions tailored to common lifestyle diseases, helping users make informed and balanced dietary choices.
+        </p>
+    </div>
+    
+    <div class="sidebar-content" style='margin-bottom: 30px;'>
+        <h3 class="sidebar-title">Key Features</h3>
+        <div style='background-color: rgba(255, 255, 255, 0.7); padding: 15px; border-radius: 8px; margin-top: 10px;'>
+            <ul style='list-style-type: none; padding: 0; color: #2E7D32; font-size: 0.95em;'>
+                <li style='margin-bottom: 12px; padding-left: 20px; position: relative;'>
+                    <span style='position: absolute; left: 0; color: #2E7D32;'>•</span>
+                    Food Recognition
+                </li>
+                <li style='margin-bottom: 12px; padding-left: 20px; position: relative;'>
+                    <span style='position: absolute; left: 0; color: #2E7D32;'>•</span>
+                    Nutrition Analysis
+                </li>
+                <li style='margin-bottom: 12px; padding-left: 20px; position: relative;'>
+                    <span style='position: absolute; left: 0; color: #2E7D32;'>•</span>
+                    Diet Planning
+                </li>
+                <li style='margin-bottom: 12px; padding-left: 20px; position: relative;'>
+                    <span style='position: absolute; left: 0; color: #2E7D32;'>•</span>
+                    AI Recipe Generation
+                </li>
+            </ul>
         </div>
     </div>
     
-    <div class="sidebar-divider"></div>
-    
-    <div class="sidebar-section">
-        <span class="sidebar-title">Key Features</span>
-        <div class="feature-item">Food Analyzer</div>
-        <div class="feature-item">AI-Based Food Innovation</div>
-        <div class="feature-item">Disease-Specific Diets</div>
-        <div class="feature-item">Healthier Alternatives</div>
+    <div class="sidebar-content">
+        <h3 style='color: #2E7D32; margin-bottom: 15px;'>Developed by:</h3>
+        <p style='margin: 5px 0;'>Pakhi Singh Tak</p>
+        <p style='margin: 5px 0;'>Ilansha Singh Sisodia</p>
+        <p style='margin-top: 15px; font-style: italic; color: #666;'>
+            This project has been developed as part of a B.Tech Final Year Project.
+        </p>
     </div>
-    
-    <div class="sidebar-footer">
-        <b>Developed by:</b><br>
-        Pakhi Singh Tak<br>
-        Ilansha Singh Sisodia
-    </div>
-    
-    <div class="project-note">
-        This project has been developed as part of a B.Tech Final Year Project
-    </div>
-""", unsafe_allow_html=True)
-
-# Professional header card
-st.markdown("""
-    <div class="header-card">
-        <div class="header-title">Welcome to EATelligence AI</div>
-        <div class="header-subtitle">Your smart AI-powered food companion!</div>
-        <div class="header-desc">This app helps analyze food nutrition, suggest healthier alternatives, create innovative Indian food combos, and give disease-specific diet advice.</div>
-    </div>
-""", unsafe_allow_html=True)
-
-# Add a gap between header and tabs
-st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Initialize components
 @st.cache_resource
@@ -273,54 +177,106 @@ pastel_divider = "<div class='pastel-divider'></div>"
 with food_tab:
     st.subheader("🍽️ Food Analyzer")
     st.markdown(pastel_divider, unsafe_allow_html=True)
-    # Food search
-    food_name = st.text_input("Enter food name")
     
-    # Image upload
-    uploaded_file = st.file_uploader("Or upload a food image", type=["jpg", "jpeg", "png"])
+    st.markdown("""
+    <div style='text-align: center; padding: 20px; background-color: rgba(255, 255, 255, 0.9); border-radius: 10px; margin-bottom: 20px;'>
+        <h2 style='color: #2E7D32; margin-bottom: 10px;'>🍽️ Food Analyzer</h2>
+        <p style='color: #666; font-size: 1.1em;'>Upload a food image or enter a food name to get detailed nutritional information and health impact assessment.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        result = components['food_recognizer'].process_image(image)
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("### 📸 Upload Food Image")
+        uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
         
-        if result:
-            # Create two columns for image and nutrition info
-            col1, col2 = st.columns([1, 2])
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Food Image", use_column_width=True)
             
-            with col1:
-                # Display the food image
-                st.image(result['display_image'], caption="Uploaded Food Image", use_column_width=True)
-            
-            with col2:
-                # Display nutrition information if available
-                if 'name' in result:
-                    st.markdown(f"**Recognized Food:** {result['name']}")
-                    st.markdown("**Nutrition Information:**")
-                    st.markdown(f"- Calories: {result['calories']} kcal")
-                    st.markdown(f"- Protein: {result['protein']}g")
-                    st.markdown(f"- Fat: {result['fat']}g")
-                    st.markdown(f"- Carbohydrates: {result['carbs']}g")
+            # Get food recognition
+            food_name = components['food_recognizer'].recognize_food(image)
+            if food_name:
+                st.success(f"Recognized Food: {food_name}")
+                
+                # Get nutrition info
+                nutrition_info = get_nutrition_info(food_name)
+                if nutrition_info:
+                    # Display nutrition info in a styled table
+                    st.markdown("### 📊 Nutritional Information")
+                    nutrition_df = pd.DataFrame([nutrition_info])
+                    st.markdown("""
+                    <style>
+                    .nutrition-table {
+                        background-color: rgba(255, 255, 255, 0.9);
+                        border-radius: 10px;
+                        padding: 20px;
+                        margin: 10px 0;
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+                    st.markdown('<div class="nutrition-table">', unsafe_allow_html=True)
+                    st.dataframe(nutrition_df, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Create pie chart for macronutrients
-                    macronutrients = pd.DataFrame({
-                        'Nutrient': ['Protein', 'Fat', 'Carbs'],
-                        'Amount': [
-                            result['protein'],
-                            result['fat'],
-                            result['carbs']
-                        ]
-                    })
+                    # Health Impact Assessment
+                    st.markdown("### 🏥 Health Impact Assessment")
+                    health_impact = assess_health_impact(nutrition_info)
                     
-                    fig = px.pie(
-                        macronutrients,
-                        values='Amount',
-                        names='Nutrient',
-                        title="Macronutrient Distribution",
-                        color_discrete_sequence=['#FF6B6B', '#B8E0D2', '#95C9B9']
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
+                    # Display health impacts with color coding
+                    for impact, details in health_impact.items():
+                        impact_class = "positive" if "positive" in details.lower() else "caution" if "moderate" in details.lower() else "negative"
+                        st.markdown(f"""
+                        <div class="impact-item {impact_class}">
+                            <h4 style='margin: 0;'>{impact}</h4>
+                            <p style='margin: 5px 0;'>{details}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                 else:
-                    st.warning("Could not recognize the food in the image. Please try another image or use the text input.")
+                    st.warning("Nutritional information not available for this food item.")
+            else:
+                st.error("Could not recognize the food in the image. Please try another image or use text input.")
+    
+    with col2:
+        st.markdown("### 🔍 Search by Name")
+        food_name = st.text_input("Enter food name")
+        
+        if food_name:
+            nutrition_info = get_nutrition_info(food_name)
+            if nutrition_info:
+                # Display nutrition info in a styled table
+                st.markdown("### 📊 Nutritional Information")
+                nutrition_df = pd.DataFrame([nutrition_info])
+                st.markdown("""
+                <style>
+                .nutrition-table {
+                    background-color: rgba(255, 255, 255, 0.9);
+                    border-radius: 10px;
+                    padding: 20px;
+                    margin: 10px 0;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                st.markdown('<div class="nutrition-table">', unsafe_allow_html=True)
+                st.dataframe(nutrition_df, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Health Impact Assessment
+                st.markdown("### 🏥 Health Impact Assessment")
+                health_impact = assess_health_impact(nutrition_info)
+                
+                # Display health impacts with color coding
+                for impact, details in health_impact.items():
+                    impact_class = "positive" if "positive" in details.lower() else "caution" if "moderate" in details.lower() else "negative"
+                    st.markdown(f"""
+                    <div class="impact-item {impact_class}">
+                        <h4 style='margin: 0;'>{impact}</h4>
+                        <p style='margin: 5px 0;'>{details}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.warning("Nutritional information not available for this food item.")
 
 # AI-Based Food Innovation Tab
 with recipe_tab:
