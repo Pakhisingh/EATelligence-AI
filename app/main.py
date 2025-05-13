@@ -102,7 +102,7 @@ st.markdown("""
 # Header
 st.markdown("""
 <div class="header-container">
-    <h1 class="header-title">Welcome to EATelligence AI</h1>
+    <h1 class="header-title">Welcome to EATelligence AI! Discover the Nutritional Secrets of Your Food</h1>
     <p class="header-subtitle">Your AI-powered nutrition and diet planning assistant</p>
 </div>
 """, unsafe_allow_html=True)
